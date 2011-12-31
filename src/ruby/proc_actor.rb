@@ -4,7 +4,6 @@ require 'lib/scala-library.jar'
 
 java_import 'akka.actor.UntypedActor'
 java_import 'akka.actor.UntypedActorFactory'
-java_import 'akka.actor.Actors'
 
 # Actor implementation which takes in a Proc object; that object will be responsible for
 # handling all incoming messages
