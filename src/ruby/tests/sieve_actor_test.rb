@@ -36,10 +36,10 @@ class SieveActorTest < Test::Unit::TestCase
 
     # Verify that integers which aren't multiples of these primes aren't marked
     # as primes
-    10.upto(1000) do |candidate|
+    10.upto(1000) do |c|
 
-      assert(model.sendRequestReply([:isprime,candidate])) if seeds.all? { |seed| candidate % seed != 0 }
-      assert(!model.sendRequestReply([:isprime,candidate])) if seeds.any? { |seed| candidate % seed == 0 }
+      assert(model.sendRequestReply([:isprime,c]),"Candidate #{c} should be prime based on seeds but returned false") if seeds.all? { |seed| c % seed != 0 }
+      assert(!model.sendRequestReply([:isprime,c]),"Candidate #{c} should not be prime based on seeds but returned true") if seeds.any? { |seed| c % seed == 0 }
     end
 
     model.stop
