@@ -2,7 +2,8 @@ require 'sieve_actor'
 
 require 'test/unit'
 
-class SieveControllerActorTest < Test::Unit::TestCase
+# Basic test for model actor functionality
+class SieveModelActorTest < Test::Unit::TestCase
 
   # Empty models shouldn't match anything
   def test_model_empty
