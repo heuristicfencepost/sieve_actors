@@ -4,29 +4,42 @@ require 'test/unit'
 
 class SieveActorTest < Test::Unit::TestCase
 
-  def test_model_basic
+  # Empty models shouldn't match anything
+  def test_model_empty
 
     model = Actors.actorOf { Sieve::Model.new }
     model.start
 
-    # We shouldn't have any data yet
-    (1..10).each do |val|
-      msg = [:check,val]
-      assert(! (model.sendRequestReply msg))
+    1.upto(10).each { |val| assert_equal(model.sendRequestReply([:isprime,val]),nil) }
+
+    model.stop
+  end
+
+  # Verify that we can match some data after adding it
+  def test_model_add
+
+    model = Actors.actorOf { Sieve::Model.new }
+    model.start
+
+    seeds = [2,3,5,7]
+
+    # Add in a few known primes
+    seeds.each { |seed| model.tell [:add,seed] }
+
+    # Verify that the values themselves show up as prime
+    seeds.each { |seed| assert(model.sendRequestReply([:isprime,seed]),"Seed #{seed} failed") }
+
+    # Verify that multiples of the known primes are NOT marked as primes
+    seeds.each do |seed| 
+      2.upto(100).each { |multiplier| assert(!model.sendRequestReply([:isprime,seed * multiplier]),"Multiplier #{multiplier} for seed #{seed} failed") }
     end
 
-    # Add in a few data items
-    model.tell [:add,3]
-    model.tell [:add,7]
+    # Verify that integers which aren't multiples of these primes aren't marked
+    # as primes
+    10.upto(1000) do |candidate|
 
-    # Re-run the tests, this time searching for true results for the values we just added
-    (1..10).each do |val|
-      msg = [:check,val]
-      if val == 3 or val == 7
-        assert(model.sendRequestReply msg)
-      else 
-        assert(! (model.sendRequestReply msg))
-      end
+      assert(model.sendRequestReply([:isprime,candidate])) if seeds.all? { |seed| candidate % seed != 0 }
+      assert(!model.sendRequestReply([:isprime,candidate])) if seeds.any? { |seed| candidate % seed == 0 }
     end
 
     model.stop
