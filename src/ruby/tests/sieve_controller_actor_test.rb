@@ -4,7 +4,7 @@ require 'mathn'
 
 require 'test/unit'
 
-# Basic test for model actor functionality
+# Basic test for controller actor functionality
 class SieveControllerActorTest < Test::Unit::TestCase
 
   # Verify that we can at least obtain the seeded values from the controller
