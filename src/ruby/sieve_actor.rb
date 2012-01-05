@@ -15,9 +15,12 @@ module Sieve
     include Enumerable
 
     def initialize
+      # Note that this initial value is never actually returned; we're only setting the stage for the
+      # first increment to generate the first candidate
       @next = 9
     end
 
+    # Primes must be a number ending in 1, 3, 7 or 9... a bit of reflection will make it clear why
     def each
       loop do
         @next += (@next % 10 == 3) ? 4 : 2
@@ -60,13 +63,19 @@ module Sieve
           return
         end
 
-        # If we're still here then we need to do some checking.  Return the first
-        # candidate that gets a true value from any model.
-        val = @candidates.first do |candidate|
-          @models.all? { |model| model.sendRequestReply [:isprime,candidate] }
+        # If we're still here then we need to evaluate candidates against our models.  Each
+        # candidate value is fed into the models in parallel.  The first value that all models
+        # agree is prime is returned as the value
+        val = @candidates.find do |candidate|
+          @models.map { |m| m.sendRequestReplyFuture [:isprime,candidate] }.all? do |f|
+            f.await
+            return false if not f.result.isDefined
+            f.result.get
+          end
         end
 
-        # Pick a model at random and add the new prime to it
+        # Now that we have a prime value we need to update the state of one of our models to
+        # include this new value.  For now we just choose a model at random
         @models[(rand @models.size)].tell [:add,val]
 
         # Finally, send a response back to the caller
@@ -90,10 +99,8 @@ module Sieve
       (type,data) = msg
       case type
       when :add
-        puts "Adding value #{data}"
         @primes << data
       when :isprime
-        puts "Checking value #{data}"
 
         # If we haven't been fed any primes yet we can't say much...
         if @primes.empty?
@@ -107,7 +114,6 @@ module Sieve
         resp = @primes.none? do |prime|
           data != prime and data % prime == 0
         end
-        puts "Returning #{resp}"
         self.getContext.replySafe resp
       else
         puts "Unknown type #{type}"
