@@ -15,13 +15,13 @@ module Sieve
     include Enumerable
 
     def initialize
-      @base = 10
+      @next = 9
     end
 
     def each
       loop do
-        [1,3,7,9].each { |i| yield @base + i }
-        @base += 10
+        @next += (@next % 10 == 3) ? 4 : 2
+        yield @next
       end
     end
   end
@@ -37,7 +37,7 @@ module Sieve
 
       # Seed models with a few initial values... just to get things going
       @seeds = [2,3,5,7]
-      0.upto(3).each { |idx| @models[idx].send [:add,@seeds[idx]] }
+      0.upto(3).each { |idx| @models[idx].tell [:add,@seeds[idx]] }
 
       @candidates = Candidates.new
     end
@@ -45,7 +45,6 @@ module Sieve
     # Part of the lifecycle for an Akka actor.  When this actor is shut down
     # we'll want to shut down all the models we're aware of as well
     def postStop
-      puts "Looks like we're all done here... "
       @models.each { |m| m.stop }
     end
 
@@ -64,7 +63,7 @@ module Sieve
         # If we're still here then we need to do some checking.  Return the first
         # candidate that gets a true value from any model.
         val = @candidates.first do |candidate|
-          @models.any? { |model| model.sendRequestReply [:isprime,candidate] }
+          @models.all? { |model| model.sendRequestReply [:isprime,candidate] }
         end
 
         # Pick a model at random and add the new prime to it
