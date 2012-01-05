@@ -1,5 +1,7 @@
 require 'sieve_actor'
 
+require 'mathn'
+
 require 'test/unit'
 
 # Basic test for model actor functionality
@@ -8,15 +10,11 @@ class SieveControllerActorTest < Test::Unit::TestCase
   # Verify that we can at least obtain the seeded values from the controller
   def test_controller_seeds_only
 
-    puts "Seeds only"
-
     controller = Actors.actorOf { Sieve::Controller.new }
     controller.start
 
-    assert_equal(2,controller.sendRequestReply(:next))
-    assert_equal(3,controller.sendRequestReply(:next))
-    assert_equal(5,controller.sendRequestReply(:next))
-    assert_equal(7,controller.sendRequestReply(:next))
+    primes = Sieve::Primes.new(controller)
+    assert_equal([2,3,5,7],primes.take(4))
 
     controller.stop
   end
@@ -24,19 +22,17 @@ class SieveControllerActorTest < Test::Unit::TestCase
   # Now verify that the controller correctly computes new primes
   def test_controller_computed_primes
 
-    puts "Computed primes"
-
     controller = Actors.actorOf { Sieve::Controller.new }
     controller.start
 
-    1.upto(4).each { controller.sendRequestReply(:next) }
+    # Skip past the seeded values
+    primes1 = Sieve::Primes.new(controller)
+    primes1.take 4
 
-    assert_equal(11,controller.sendRequestReply(:next))
-    assert_equal(13,controller.sendRequestReply(:next))
-    assert_equal(17,controller.sendRequestReply(:next))
-    assert_equal(19,controller.sendRequestReply(:next))
-    assert_equal(23,controller.sendRequestReply(:next))
-    assert_equal(29,controller.sendRequestReply(:next))
+    primes2 = Prime.new
+    primes2.take 4
+
+    assert_equal(primes1.take(100),primes2.take(100))
 
     controller.stop
   end

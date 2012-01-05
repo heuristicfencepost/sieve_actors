@@ -8,6 +8,21 @@ java_import 'akka.actor.UntypedActorFactory'
 
 module Sieve
 
+  # Basic Enumerable wrapper for a Controller actor... just a convenience thing really
+  class Primes
+    include Enumerable
+
+    def initialize(controller)
+      @controller = controller
+    end
+
+    def each
+      loop do
+        yield @controller.sendRequestReply(:next)
+      end
+    end
+  end
+
   # Enumerable implementation representing the set of prime number candidates > 10.  Use of an
   # enumerable here allows us to isolate the state associated with candidate selection to this
   # class, freeing up the model and controller actors to focus on other parts of the computation
