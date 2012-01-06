@@ -1,0 +1,10 @@
+* Implementing the Sieve of Eratosthenes using actors
+The code in this project consists of implementation(s) of the Sieve of Eratosthenes using actors.
+
+* Contents
+** Ruby
+A standalone Ruby implementation can be found in src/ruby/sieve_actor.rb.  This code uses JRuby in combination with Akka for the actor implementation.  Tests for each
+individual actor can be found in src/ruby/tests.
+
+Details of this implementation can be found at http://heuristic-fencepost.blogspot.com
+
