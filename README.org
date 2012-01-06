@@ -4,8 +4,8 @@ The code in this project consists of implementation(s) of the Sieve of Eratosthe
 * Contents
 ** Ruby
 A standalone Ruby implementation can be found in src/ruby/sieve_actor.rb.  This code uses JRuby in combination with Akka for the actor implementation.  Tests for each
-individual actor can be found in src/ruby/tests.
+individual actor can be found in src/ruby/tests.  Tests can be run via the Rakefile in src/ruby.
 
-Details of this implementation can be found at [[http://heuristic-fencepost.blogspot.com][Heuristic Fencepost]].
+Details of this implementation can be found at [[http://heuristic-fencepost.blogspot.com/2012/01/ruby-and-concurrency-design-with-actors.html][Heuristic Fencepost]].
 
 
