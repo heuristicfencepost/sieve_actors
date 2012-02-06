@@ -8,4 +8,5 @@ Rake::TestTask.new("test_units") { |t|
   t.pattern = 'tests/*_test.rb'
   t.verbose = true
   t.warning = true
+  t.libs = ["nonblocking"]
 }
