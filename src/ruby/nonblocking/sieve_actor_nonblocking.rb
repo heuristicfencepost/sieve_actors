@@ -78,8 +78,7 @@ module SieveNonblocking
     end
 
     def onReceive(msg)
-      (type,data) = msg
-      case type
+      case msg[0]
       when :next
         # If we still have seeds to return do so up front
         seed = @seeds.shift
@@ -88,48 +87,66 @@ module SieveNonblocking
           return
         end
 
-        # If we're still here then we need to evaluate candidates against our models.  Each
-        # candidate value is fed into the models in parallel.  The first value that all models
-        # agree is prime is returned as the value
-        #
-        # We're now doing this in a non-blocking fashion so we need to do the following:
-        # - preserve a reference to the original sender
-        # - preserve the current candidate value
-        # - send the candidate to all models to initiate the process
+        # Preserve a channel to the original sender so that we can deliver answers when we
+        # get them
         @reply_channel = self.getContext.channel
-        @candidate = @candidates.first
-        @models.each { |m| m.tell([:isprime,@candidate],self.getContext) }
-      when :isprime
-        # Preserve the answer we got in @replies
-        @replies << data
 
-        # If we've received replies from all models then we need further processing
-        if @replies.length == @models.length
-
-          # We have a prime, so do the following:
-          # - add the new prime to one of the models
-          # - reset what state we can
-          # - send the result
-          if @replies.all?
-            reply = @candidate
-
-            @models[(rand @models.size)].tell [:add,reply]
-
-            @replies.clear
-            @candidate = nil
-
-            @reply_channel.tell reply
-
-          # We don't have a prime, so get a new candidate, send it off to the models and
-          # reset what state we can
-          else
-            @candidate = @candidates.first
-            @models.each { |m| m.tell([:isprime,@candidate],self.getContext) }
-
-            # Still need to clean up after ourselves
-            @replies.clear
-          end
+        update_and_send_candidate
+      when :prime
+        if !validate_model_reply(msg)
+          return
         end
+        @replies << true
+        check_replies
+      when :not_prime
+        if !validate_model_reply(msg)
+          return
+        end
+        @replies << false
+        check_replies
+      end
+    end
+
+    # Some basic validation; make sure the message is a list of the correct size and
+    # that the second element (the value the model is reporting on) matches the current
+    # candidate.
+    def validate_model_reply(msg)
+      return msg.length == 2 && msg[1] == @candidate
+    end
+
+    # Update the candidate state and send to all models
+    def update_and_send_candidate
+      @candidate = @candidates.first
+      @models.each { |m| m.tell([:prime?,@candidate],self.getContext) }
+    end
+
+    # Check to see if we've received responses from all models.  If we have then check to
+    # see if everybody said the candidate was prime.  If that's the case we're okay to send
+    # the candidate to the caller, otherwise we get to start all over with the next candidate.
+    def check_replies
+
+      if @replies.length < @models.length
+        return
+      end
+
+      # We've found the next prime.  Add this value to one of the models, reset as much
+      # of our state as possible and send the result to the caller
+      if @replies.all?
+        nextprime = @candidate
+
+        @models[(rand @models.size)].tell [:add,nextprime]
+
+        @replies.clear
+        @candidate = nil
+
+        @reply_channel.tell nextprime
+
+      # We don't have a prime, so get a new candidate, send it off to the models and
+      # reset what state we can
+      else
+        @replies.clear
+
+        update_and_send_candidate
       end
     end
   end
@@ -145,14 +162,16 @@ module SieveNonblocking
     def onReceive(msg)
       # It's times like this that one really does miss Scala's pattern matching
       # but case fills in nicely enough
-      (type,data) = msg
-      case type
+      case msg[0]
       when :add
-        @primes << data
-      when :isprime
+        if msg.length != 2
+          return
+        end
+        @primes << msg[1]
+      when :prime?
 
-        # If we haven't been fed any primes yet we can't say much...
-        if @primes.empty?
+        # Upfront validation; make sure we have some primes and that the message is of the appropriate size
+        if msg.length != 2 || @primes.empty?
           self.getContext.replySafe nil
           return
         end
@@ -160,10 +179,11 @@ module SieveNonblocking
         # This model only considers a value prime if it doesn't divide evenly into any
         # prime it already knows about.  Of course we have to make an exception if we're
         # testing one of the primes we already know about
+        candidate = msg[1]
         resp = @primes.none? do |prime|
-          data != prime and data % prime == 0
+          candidate != prime and candidate % prime == 0
         end
-        self.getContext.replySafe [:isprime,resp]
+        self.getContext.replySafe [resp ? :prime : :not_prime,candidate]
       else
         puts "Unknown message type #{type}"
       end
