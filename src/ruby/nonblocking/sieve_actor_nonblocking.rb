@@ -176,9 +176,8 @@ module SieveNonblocking
           return
         end
 
-        # This model only considers a value prime if it doesn't divide evenly into any
-        # prime it already knows about.  Of course we have to make an exception if we're
-        # testing one of the primes we already know about
+        # The model only considers a value prime if it doesn't equal or divide evenly into any previously 
+        # observed prime.
         candidate = msg[1]
         resp = @primes.none? do |prime|
           candidate != prime and candidate % prime == 0
