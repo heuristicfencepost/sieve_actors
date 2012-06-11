@@ -6,7 +6,7 @@ java_import 'akka.actor.Actors'
 java_import 'akka.actor.UntypedActor'
 java_import 'akka.actor.UntypedActorFactory'
 
-module Akka
+module Sieve
 
   # Basic Enumerable wrapper for a Controller actor... just a convenience thing really
   class Primes
@@ -48,7 +48,7 @@ module Akka
 
     def initialize
       @models = 0.upto(3).map do |idx|
-        model = Actors.actorOf { Akka::Model.new }
+        model = Actors.actorOf { Model.new }
         model.start
         model
       end

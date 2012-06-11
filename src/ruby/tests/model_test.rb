@@ -9,7 +9,7 @@ class ModelTest < Test::Unit::TestCase
   # Empty models shouldn't match anything
   def test_model_empty
 
-    model = Actors.actorOf { Akka::Model.new }
+    model = Actors.actorOf { Sieve::Model.new }
     model.start
 
     1.upto(10).each { |val| assert_equal(model.sendRequestReply([:prime?,val]),nil) }
@@ -20,7 +20,7 @@ class ModelTest < Test::Unit::TestCase
   # Verify that we can match some data after adding it
   def test_model_add
 
-    model = Actors.actorOf { Akka::Model.new }
+    model = Actors.actorOf { Sieve::Model.new }
     model.start
 
     seeds = [2,3,5,7]

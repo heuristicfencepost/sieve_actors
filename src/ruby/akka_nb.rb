@@ -12,7 +12,7 @@ java_import 'akka.actor.UntypedActorFactory'
 # using standard actor messaging.  The calling client (in this case the Primes enumerable)
 # must block in order to yield a value but the actors (specifically the controller) no longer
 # has to wait on a response from the model.
-module Akka
+module Sieve
 
   # Basic Enumerable wrapper for a Controller actor... just a convenience thing really
   class Primes
