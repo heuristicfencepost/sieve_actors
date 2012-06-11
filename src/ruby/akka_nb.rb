@@ -12,7 +12,7 @@ java_import 'akka.actor.UntypedActorFactory'
 # using standard actor messaging.  The calling client (in this case the Primes enumerable)
 # must block in order to yield a value but the actors (specifically the controller) no longer
 # has to wait on a response from the model.
-module SieveNonblocking
+module Akka
 
   # Basic Enumerable wrapper for a Controller actor... just a convenience thing really
   class Primes
@@ -55,7 +55,7 @@ module SieveNonblocking
 
     def initialize
       @models = 0.upto(3).map do |idx|
-        model = Actors.actorOf { SieveNonblocking::Model.new }
+        model = Actors.actorOf { Model.new }
         model.start
         model
       end
@@ -78,6 +78,7 @@ module SieveNonblocking
     end
 
     def onReceive(msg)
+
       case msg[0]
       when :next
         # If we still have seeds to return do so up front
@@ -160,10 +161,12 @@ module SieveNonblocking
     end
 
     def onReceive(msg)
+
       # It's times like this that one really does miss Scala's pattern matching
       # but case fills in nicely enough
       case msg[0]
       when :add
+
         if msg.length != 2
           return
         end

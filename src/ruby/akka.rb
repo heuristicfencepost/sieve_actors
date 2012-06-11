@@ -6,7 +6,7 @@ java_import 'akka.actor.Actors'
 java_import 'akka.actor.UntypedActor'
 java_import 'akka.actor.UntypedActorFactory'
 
-module Sieve
+module Akka
 
   # Basic Enumerable wrapper for a Controller actor... just a convenience thing really
   class Primes
@@ -48,7 +48,7 @@ module Sieve
 
     def initialize
       @models = 0.upto(3).map do |idx|
-        model = Actors.actorOf { Sieve::Model.new }
+        model = Actors.actorOf { Akka::Model.new }
         model.start
         model
       end
@@ -82,10 +82,11 @@ module Sieve
         # candidate value is fed into the models in parallel.  The first value that all models
         # agree is prime is returned as the value
         val = @candidates.find do |candidate|
-          @models.map { |m| m.sendRequestReplyFuture [:isprime,candidate] }.all? do |f|
+          @models.map { |m| m.sendRequestReplyFuture [:prime?,candidate] }.all? do |f|
             f.await
             return false if not f.result.isDefined
-            f.result.get
+            resp = f.result.get
+            resp[0] == :prime
           end
         end
 
@@ -115,7 +116,7 @@ module Sieve
       case type
       when :add
         @primes << data
-      when :isprime
+      when :prime?
 
         # If we haven't been fed any primes yet we can't say much...
         if @primes.empty?
@@ -129,7 +130,7 @@ module Sieve
         resp = @primes.none? do |prime|
           data != prime and data % prime == 0
         end
-        self.getContext.replySafe resp
+        self.getContext.replySafe [resp ? :prime : :not_prime,data]
       else
         puts "Unknown type #{type}"
       end
