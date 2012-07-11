@@ -8,7 +8,7 @@ classes as well as a Primes enumerable to facilitate usage and testing.  A quick
 
 *** Akka
  - Implemented in src/ruby/akka.rb
- - Can be tested with "rake test_akka"
+ - Can be tested with /rake test_akka/
  - Known to work with JRuby 1.6.7 and Akka 1.2
 
 A fairly simple implementation using [[http://akka.io/][Akka]] via JRuby.  Calls to Controller.next send candidates to each model (building a collection of futures to represent these
@@ -18,7 +18,7 @@ Discussed in detail in this [[http://heuristic-fencepost.blogspot.com/2012/01/ru
 
 *** Non-blocking Akka
  - Implemented in src/ruby/akka_nb.rb
- - Can be tested with "rake test_akka_nb"
+ - Can be tested with /rake test_akka_nb/
  - Known to work with JRuby 1.6.7 and Akka 1.2
 
 A more complex version using [[http://akka.io/][Akka]] and JRuby.  Here the Controller no longer waits for responses from all models when handling Controller.next.  Instead the controller
@@ -29,7 +29,7 @@ Discussed in detail in this [[http://heuristic-fencepost.blogspot.com/2012/02/ru
 
 *** Celluloid
  - Implemented in src/ruby/celluloid_base.rb
- - Can be tested with "rake test_celluloid_base_jruby"
+ - Can be tested with /rake test_celluloid_base_jruby/
  - Known to work with JRuby 1.6.7 and Celluloid 0.11.0
 
 An initial version using [[http://celluloid.io/][Celluloid]] and JRuby.
