@@ -3,18 +3,30 @@ require 'rake/testtask'
 
 task :default => [:test_akka]
 
-desc "Run tests for basic Akka framework"
+desc "Run tests for basic Akka code"
 Rake::TestTask.new("test_akka") { |t|
-  t.pattern = 'tests/*_test.rb'
+  t.pattern = 'tests/akka_*_test.rb'
   t.verbose = true
   t.warning = true
   t.options = ["akka"]
 }
 
-desc "Run tests for basic Akka framework"
+desc "Run tests for Akka with non-blocking code"
 Rake::TestTask.new("test_akka_nb") { |t|
-  t.pattern = 'tests/*_test.rb'
+  t.pattern = 'tests/akka_*_test.rb'
   t.verbose = true
   t.warning = true
   t.options = ["akka_nb"]
+}
+
+desc "Run tests for basic Celluloid code using JRuby"
+Rake::TestTask.new("test_celluloid_base_jruby") { |t|
+  t.pattern = 'tests/celluloid_*_test.rb'
+  t.verbose = true
+  t.warning = true
+  t.options = ["celluloid_base"]
+
+  # Celluloid requires JRuby to be run in 1.9 compatible mode and that's not the
+  # default until JRuby 1.7.
+  t.ruby_opts = ["--1.9"]
 }
