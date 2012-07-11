@@ -3,6 +3,43 @@ The code in this project consists of implementation(s) of the Sieve of Eratosthe
 
 * Contents
 ** Ruby
+There are several Ruby implementations here based on various actor implementations.  Each version implements the Sieve module which includes Controller and Actor
+classes as well as a Primes enumerable to facilitate usage and testing.  A quick overview of these various implementations can be found below.
+
+*** Akka
+# Implemented in src/ruby/akka.rb
+# Can be tested with "rake test_akka"
+# Known to work with JRuby 1.6.7 and Akka 1.2
+
+A fairly simple implementation using [[http://akka.io/][Akka]] via JRuby.  Calls to Controller.next send candidates to each model (building a collection of futures to represent these
+ops) and then wait for answers immediately.  Using this method Controller.next always returns a value to it's caller immediately.
+
+Discussed in detail in this [[http://heuristic-fencepost.blogspot.com/2012/01/ruby-and-concurrency-design-with-actors.html][blog post]].
+
+*** Non-blocking Akka
+# Implemented in src/ruby/akka_nb.rb
+# Can be tested with "rake test_akka_nb"
+# Known to work with JRuby 1.6.7 and Akka 1.2
+
+A more complex version using [[http://akka.io/][Akka]] and JRuby.  Here the Controller no longer waits for responses from all models when handling Controller.next.  Instead the controller
+checks it's state as results come in, sending a response to the caller only if all models have responded positively.  This approach forces each actor to handle only
+one message at a time, addressing a design flaw in the original implementation and bringing us closer to "pure" actors.
+
+Discussed in detail in this [[http://heuristic-fencepost.blogspot.com/2012/02/ruby-and-concurrency-maintaining-purity.html][blog post]]
+
+*** Celluloid
+# Implemented in src/ruby/celluloid_base.rb
+# Can be tested with "rake test_celluloid_base_jruby"
+# Known to work with JRuby 1.6.7 and Celluloid 0.11.0
+
+An initial version using [[http://celluloid.io/][Celluloid]] and JRuby.
+
+To be discussed in a forthcoming blog post.
+
+
+
+
+
 A standalone Ruby implementation can be found in src/ruby/sieve_actor.rb.  This code uses JRuby in combination with Akka for the actor implementation.  Tests for each
 individual actor can be found in src/ruby/tests.  Tests can be run via the Rakefile in src/ruby.
 
